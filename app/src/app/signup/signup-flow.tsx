@@ -119,7 +119,7 @@ function KioskCard({
     letterSpacing: "-0.03em",
     lineHeight: 1.1,
     color: "#f0f0f0",
-    marginBottom: "40px",
+    marginBottom: "16px",
   };
 
   const kioskInput: React.CSSProperties = {
@@ -226,7 +226,7 @@ function KioskCard({
   if (cardId === "seats") return (
     <div>
       <p style={bigLabel}>How many seats?</p>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444", letterSpacing: "0.05em", marginBottom: "40px" }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: "18px", color: "#d3f707", letterSpacing: "-0.01em", marginBottom: "20px" }}>
         Each seat is ${PRICES.oneWay} one-way · ${PRICES.roundTrip} round-trip
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "32px", marginBottom: "8px" }}>
@@ -267,10 +267,10 @@ function KioskCard({
   if (cardId === "return-yn") return (
     <div>
       <p style={bigLabel}>Need a ride back?</p>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444", letterSpacing: "0.05em", marginBottom: "24px" }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: "18px", color: "#d3f707", letterSpacing: "-0.01em", marginBottom: "20px" }}>
         Round-trip ${PRICES.roundTrip} × {form.seats} seat{form.seats > 1 ? "s" : ""} = ${PRICES.roundTrip * form.seats} · One-way ${PRICES.oneWay} × {form.seats} = ${PRICES.oneWay * form.seats}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
         {[true, false].map((v) => (
           <button key={String(v)} onClick={() => { set("wantsReturn", v); setTimeout(onAdvance, 180); }} style={{ padding: "22px 24px", background: form.wantsReturn === v ? (v ? "rgba(211,247,7,0.08)" : "rgba(255,255,255,0.04)") : "#0a0909", border: `1px solid ${form.wantsReturn === v ? (v ? "#d3f707" : "#333") : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", textAlign: "left", transition: "all 150ms" }}>
             <div style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 500, color: v ? (form.wantsReturn === v ? "#d3f707" : "#888") : (form.wantsReturn === false ? "#f0f0f0" : "#555"), letterSpacing: "-0.02em" }}>
@@ -303,7 +303,7 @@ function KioskCard({
       </div>
       <div style={{ display: "flex", gap: "6px", marginBottom: "24px", flexWrap: "wrap" }}>
         {[0, 10, 15, 25].map((p) => (
-          <button key={p} onClick={() => set("donation", p)} style={{ padding: "14px 20px", background: form.donation === p ? (p > 0 ? "rgba(14,165,233,0.12)" : "rgba(255,255,255,0.05)") : "#0a0909", border: `1px solid ${form.donation === p ? (p > 0 ? "#0ea5e9" : "#333") : "#1a1a1a"}`, color: form.donation === p ? (p > 0 ? "#0ea5e9" : "#888") : "#555", cursor: "pointer", borderRadius: "4px", fontFamily: "var(--font-mono)", fontSize: "14px", transition: "all 150ms" }}>
+          <button key={p} onClick={() => set("donation", p)} style={{ padding: "14px 20px", background: form.donation === p ? (p > 0 ? "rgba(211,247,7,0.12)" : "rgba(255,255,255,0.05)") : "#0a0909", border: `1px solid ${form.donation === p ? (p > 0 ? "#d3f707" : "#333") : "#1a1a1a"}`, color: form.donation === p ? (p > 0 ? "#d3f707" : "#888") : "#555", cursor: "pointer", borderRadius: "4px", fontFamily: "var(--font-mono)", fontSize: "14px", transition: "all 150ms" }}>
             {p === 0 ? "Skip" : `$${p}`}
           </button>
         ))}
