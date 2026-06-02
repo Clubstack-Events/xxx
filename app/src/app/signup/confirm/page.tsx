@@ -42,7 +42,7 @@ export default async function ConfirmPage({
         await resend.emails.send({
           from: "Fort Tilden Transportation <admin@clubstack.studio>",
           to: meta.contact,
-          subject: "You're on the bus — June 6 Fort Tilden",
+          subject: "June 6 Fort Tilden",
           html: receiptHtml({ name: meta.name ?? "", seats, outboundLabel, wantsReturn: meta.wantsReturn === "true", inboundLabel, total }),
         });
       } else if (meta.contactType === "phone") {
@@ -84,8 +84,8 @@ export default async function ConfirmPage({
           June 6 · Fort Tilden
         </div>
 
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 10vw, 3.5rem)", fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 1, color: "#d3f707", marginBottom: "16px" }}>
-          You're on the bus.
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 10vw, 3.5rem)", fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 1, color: "#1a1a1a", marginBottom: "16px" }}>
+          Confirmed.
         </div>
 
         {seats > 1 && (
@@ -122,7 +122,7 @@ function smsText({ name, seats, outboundLabel, wantsReturn, inboundLabel, total 
     ? `Round-trip: departs ${outboundLabel}, returns ${inboundLabel ?? "—"}`
     : `One-way: departs ${outboundLabel}`;
   return [
-    `Hi ${name} — you're on the bus! 🚌`,
+    `Hi ${name} — 🚌 info below`,
     `June 6 · Fort Tilden`,
     `Pickup: ${FIXED_PICKUP.label}`,
     `${seats} seat${seats > 1 ? "s" : ""} · ${tripLine}`,
@@ -144,7 +144,7 @@ function receiptHtml({ name, seats, outboundLabel, wantsReturn, inboundLabel, to
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="background:#f8f8f8;color:#1a1a1a;font-family:Helvetica Neue,Arial,sans-serif;padding:20px 16px;margin:0">
   <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px 24px">
     <p style="font-size:12px;letter-spacing:0.15em;color:#999;text-transform:uppercase;margin:0 0 16px">June 6 · Fort Tilden</p>
-    <h1 style="font-size:2rem;font-weight:700;letter-spacing:-0.03em;color:#d3f707;margin:0 0 12px">You're on the bus.</h1>
+    <h1 style="font-size:2rem;font-weight:700;letter-spacing:-0.03em;color:#d3f707;margin:0 0 12px">Confirmed.</h1>
     <p style="color:#666;font-size:15px;margin:0 0 24px;line-height:1.5">Hi ${name} — here's your booking summary.</p>
     <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
       ${rows.map(([k, v]) => `<tr style="border-bottom:1px solid #e0e0e0">
