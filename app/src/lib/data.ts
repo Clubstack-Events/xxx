@@ -5,18 +5,14 @@ export const FIXED_PICKUP = {
 
 // TODO: Replace with confirmed outbound departure times + real seat counts
 export const OUTBOUND_TIMES = [
-  { id: "1pm", label: "1:00 PM", spots: 6 },
-  { id: "2pm", label: "2:00 PM", spots: 3 },
-  { id: "3pm", label: "3:00 PM", spots: 10 },
-  { id: "4pm", label: "4:00 PM", spots: 8 },
+  { id: "10:30pm", label: "10:30 PM", spots: 30 },
+  { id: "12am", label: "12:00 AM", spots: 30 },
 ] as const;
 
 // TODO: Replace with confirmed inbound (return) departure times
 export const INBOUND_TIMES = [
-  { id: "9pm", label: "9:00 PM" },
-  { id: "10pm", label: "10:00 PM" },
-  { id: "11pm", label: "11:00 PM" },
-  { id: "midnight", label: "Midnight" },
+  { id: "3am", label: "3:00 AM" },
+  { id: "5:30am", label: "5:30 AM" },
 ] as const;
 
 export const PRICES = {
