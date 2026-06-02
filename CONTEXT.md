@@ -1,5 +1,20 @@
 # Event Signup Domain Glossary
 
+## Language
+
+**Slot**: An outbound or inbound trip identified by direction and departure time. Each slot has a fixed capacity of 30 seats (2 buses × 15).
+_Avoid_: Run, departure, bus
+
+**Seat**: One unit of slot capacity consumed by a booking. A signup with N seats decrements N from the chosen outbound slot and, if round-trip, N from the chosen inbound slot.
+_Avoid_: Spot, ticket, person (in the capacity context)
+
+**Capacity**: The maximum number of seats on a slot. Fixed at 30.
+
+**Booked**: The count of seats on a slot consumed by completed purchases. Capacity minus booked equals remaining availability.
+_Avoid_: Reserved, taken
+
+---
+
 ## Core Entities
 
 ### Guest
@@ -45,4 +60,5 @@ A guest's complete form submission. Contains:
 - **Stripe**: Payment processing for trips + donations. Products pre-created. Uses custom price input for donation.
 - **Twilio**: SMS/WhatsApp delivery for confirmations
 - **Vercel**: Hosting platform
+- **Vercel KV**: Redis-based key-value store used to track booked seat counts per slot
 - **clubstack-studio domain**: Event URL only (e.g., xx.clubstack.studio); no database sharing

@@ -11,8 +11,8 @@ export const OUTBOUND_TIMES = [
 
 // TODO: Replace with confirmed inbound (return) departure times
 export const INBOUND_TIMES = [
-  { id: "3am", label: "3:00 AM" },
-  { id: "5:30am", label: "5:30 AM" },
+  { id: "3am", label: "3:00 AM", spots: 30  },
+  { id: "5:30am", label: "5:30 AM", spots: 30  },
 ] as const;
 
 export const PRICES = {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import type { SignupState } from "@/lib/data";
 import { PRICES, OUTBOUND_TIMES, INBOUND_TIMES, FIXED_PICKUP } from "@/lib/data";
+import { checkCapacity } from "@/lib/capacity";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { typescript: true });
 
@@ -32,6 +33,15 @@ export async function POST(req: NextRequest) {
     }
     const form = body;
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3005";
+
+    const capacityCheck = await checkCapacity(
+      form.outboundTime,
+      form.wantsReturn ? form.inboundTime : null,
+      form.seats,
+    );
+    if (!capacityCheck.ok) {
+      return NextResponse.json({ error: capacityCheck.reason ?? "Not enough seats available" }, { status: 409 });
+    }
 
     const tripPrice = form.wantsReturn ? PRICES.roundTrip : PRICES.oneWay;
     const outbound = OUTBOUND_TIMES.find((t) => t.id === form.outboundTime);

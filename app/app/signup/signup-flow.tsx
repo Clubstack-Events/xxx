@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
 import {
   OUTBOUND_TIMES,
@@ -11,6 +11,7 @@ import {
   calcTotal,
   type SignupState,
 } from "@/lib/data";
+import type { Availability } from "@/lib/capacity";
 
 type CardId = "name" | "contact" | "seats" | "outbound" | "return-yn" | "return-time" | "donate" | "review";
 
@@ -28,6 +29,14 @@ export function SignupFlow() {
   const [cardIdx, setCardIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [availability, setAvailability] = useState<Availability | null>(null);
+
+  useEffect(() => {
+    fetch("/api/availability")
+      .then((r) => r.json())
+      .then((data) => { if (!data.error) setAvailability(data); })
+      .catch(() => {});
+  }, []);
 
   function set<K extends keyof SignupState>(key: K, val: SignupState[K]) {
     setForm((f) => ({ ...f, [key]: val }));
@@ -87,6 +96,7 @@ export function SignupFlow() {
           isLast={isLast}
           loading={loading}
           error={error}
+          availability={availability}
         />
       </div>
 
@@ -102,7 +112,7 @@ export function SignupFlow() {
 }
 
 function KioskCard({
-  cardId, form, set, onAdvance, isLast, loading, error,
+  cardId, form, set, onAdvance, isLast, loading, error, availability,
 }: {
   cardId: CardId;
   form: SignupState;
@@ -111,6 +121,7 @@ function KioskCard({
   isLast: boolean;
   loading: boolean;
   error: string | null;
+  availability: Availability | null;
 }) {
   const bigLabel: React.CSSProperties = {
     fontFamily: "var(--font-display)",
@@ -254,12 +265,26 @@ function KioskCard({
     <div>
       <p style={bigLabel}>When do you want to leave?</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {OUTBOUND_TIMES.map((t) => (
-          <button key={t.id} onClick={() => { set("outboundTime", t.id); setTimeout(onAdvance, 180); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: form.outboundTime === t.id ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${form.outboundTime === t.id ? "#d3f707" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: form.outboundTime === t.id ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
-            {t.spots <= 4 && <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444" }}>{t.spots} spots left</span>}
-          </button>
-        ))}
+        {OUTBOUND_TIMES.map((t) => {
+          const slot = availability?.outbound[t.id];
+          const full = slot?.full ?? false;
+          const remaining = slot?.remaining ?? t.spots;
+          const selected = form.outboundTime === t.id;
+          return (
+            <button
+              key={t.id}
+              disabled={full}
+              onClick={() => { if (!full) { set("outboundTime", t.id); setTimeout(onAdvance, 180); } }}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: selected ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${selected ? "#d3f707" : "#1a1a1a"}`, cursor: full ? "not-allowed" : "pointer", borderRadius: "4px", transition: "all 150ms", opacity: full ? 0.4 : 1 }}
+            >
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: selected ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
+              {full
+                ? <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#555" }}>full</span>
+                : remaining <= 4 && <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444" }}>{remaining} left</span>
+              }
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -283,11 +308,26 @@ function KioskCard({
     <div>
       <p style={bigLabel}>What time are you leaving?</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {INBOUND_TIMES.map((t) => (
-          <button key={t.id} onClick={() => { set("inboundTime", t.id); setTimeout(onAdvance, 180); }} style={{ display: "flex", alignItems: "center", padding: "18px 24px", background: form.inboundTime === t.id ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${form.inboundTime === t.id ? "#d3f707" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: form.inboundTime === t.id ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
-          </button>
-        ))}
+        {INBOUND_TIMES.map((t) => {
+          const slot = availability?.inbound[t.id];
+          const full = slot?.full ?? false;
+          const remaining = slot?.remaining ?? t.spots;
+          const selected = form.inboundTime === t.id;
+          return (
+            <button
+              key={t.id}
+              disabled={full}
+              onClick={() => { if (!full) { set("inboundTime", t.id); setTimeout(onAdvance, 180); } }}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: selected ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${selected ? "#d3f707" : "#1a1a1a"}`, cursor: full ? "not-allowed" : "pointer", borderRadius: "4px", transition: "all 150ms", opacity: full ? 0.4 : 1 }}
+            >
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: selected ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
+              {full
+                ? <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#555" }}>full</span>
+                : remaining <= 4 && <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444" }}>{remaining} left</span>
+              }
+            </button>
+          );
+        })}
       </div>
     </div>
   );
