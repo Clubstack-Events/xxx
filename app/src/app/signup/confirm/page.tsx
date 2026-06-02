@@ -47,16 +47,18 @@ export default async function ConfirmPage({
         });
       } else if (meta.contactType === "phone") {
         const smsBody = smsText({ name: meta.name ?? "", seats, outboundLabel, wantsReturn: meta.wantsReturn === "true", inboundLabel, total });
+        const digits = meta.contact.replace(/\D/g, "");
+        const e164 = digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
         await twilioClient.messages.create({
           body: smsBody,
           from: process.env.TWILIO_PHONE_NUMBER!,
-          to: meta.contact,
+          to: e164,
         });
       }
 
       await stripe.checkout.sessions.update(session_id, { metadata: { ...meta, receiptSent: "true" } });
-    } catch {
-      // Non-fatal — confirmation page still shows
+    } catch (err) {
+      console.error("[confirm] receipt send failed:", err);
     }
   }
   const seats = Number(meta.seats ?? 1);
@@ -76,37 +78,39 @@ export default async function ConfirmPage({
   ];
 
   return (
-    <div style={{ background: "#060605", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px", color: "#f0f0f0", fontFamily: "var(--font-body)", textAlign: "center" }}>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.3em", color: "#333", textTransform: "uppercase", marginBottom: "24px" }}>
-        June 6 · Fort Tilden
-      </div>
-
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 12vw, 7rem)", fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 0.85, color: "#d3f707", marginBottom: "32px" }}>
-        ON THE<br />BUS.
-      </div>
-
-      {seats > 1 && (
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "#555", textTransform: "uppercase", marginBottom: "8px" }}>
-          {seats} seats confirmed
+    <div style={{ background: "#f8f8f8", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px", color: "#1a1a1a", fontFamily: "var(--font-body)", textAlign: "center" }}>
+      <div style={{ width: "100%", maxWidth: "480px" }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.3em", color: "#666", textTransform: "uppercase", marginBottom: "24px" }}>
+          June 6 · Fort Tilden
         </div>
-      )}
 
-      <p style={{ color: "#555", fontSize: "14px", marginBottom: "40px" }}>
-        Confirmation sent to {meta.contact}. See you there.
-      </p>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 10vw, 3.5rem)", fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 1, color: "#d3f707", marginBottom: "16px" }}>
+          You're on the bus.
+        </div>
 
-      <div style={{ border: "1px solid #1a1a1a", width: "100%", maxWidth: "400px", borderRadius: "4px", overflow: "hidden", marginBottom: "32px", textAlign: "left" }}>
-        {rows.map(([k, v], i) => (
-          <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "14px 20px", background: i % 2 === 0 ? "#0a0909" : "#080807", borderBottom: "1px solid #111" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444", letterSpacing: "0.08em", textTransform: "uppercase" }}>{k}</span>
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#ccc" }}>{v}</span>
+        {seats > 1 && (
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", color: "#666", textTransform: "uppercase", marginBottom: "8px" }}>
+            {seats} seats confirmed
           </div>
-        ))}
-      </div>
+        )}
 
-      <a href="/signup" style={{ background: "none", border: "1px solid #1a1a1a", color: "#333", padding: "12px 24px", textDecoration: "none", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.1em", borderRadius: "4px" }}>
-        ← book another seat
-      </a>
+        <p style={{ color: "#666", fontSize: "15px", marginBottom: "32px", lineHeight: 1.5 }}>
+          Confirmation sent to <strong>{meta.contact}</strong>
+        </p>
+
+        <div style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: "8px", overflow: "hidden", marginBottom: "32px", textAlign: "left" }}>
+          {rows.map(([k, v], i) => (
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < rows.length - 1 ? "1px solid #e0e0e0" : "none" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#999", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 500 }}>{k}</span>
+              <span style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "#1a1a1a", fontWeight: 500 }}>{v}</span>
+            </div>
+          ))}
+        </div>
+
+        <a href="/signup" style={{ display: "inline-block", background: "#060605", border: "none", color: "#fff", padding: "14px 28px", textDecoration: "none", fontFamily: "var(--font-mono)", fontSize: "12px", letterSpacing: "0.1em", borderRadius: "6px", cursor: "pointer" }}>
+          ← book another seat
+        </a>
+      </div>
     </div>
   );
 }
@@ -137,16 +141,18 @@ function receiptHtml({ name, seats, outboundLabel, wantsReturn, inboundLabel, to
     ["Returns", wantsReturn ? (inboundLabel ?? "—") : "One-way"],
     ["Total paid", `$${total}`],
   ];
-  return `<!DOCTYPE html><html><body style="background:#0c0b0a;color:#f0f0f0;font-family:Helvetica Neue,Arial,sans-serif;padding:40px 24px;max-width:480px;margin:0 auto">
-  <p style="font-size:11px;letter-spacing:0.2em;color:#555;text-transform:uppercase;margin-bottom:24px">June 6 · Fort Tilden</p>
-  <h1 style="font-size:2.5rem;font-weight:700;letter-spacing:-0.04em;color:#d3f707;margin:0 0 8px">You're on the bus.</h1>
-  <p style="color:#555;font-size:14px;margin-bottom:32px">Hi ${name} — here's your booking summary.</p>
-  <table style="width:100%;border-collapse:collapse;font-size:13px">
-    ${rows.map(([k, v], i) => `<tr style="background:${i % 2 === 0 ? "#151412" : "#0c0b0a"}">
-      <td style="padding:12px 16px;color:#555;font-family:monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase">${k}</td>
-      <td style="padding:12px 16px;color:#ccc;text-align:right">${v}</td>
-    </tr>`).join("")}
-  </table>
-  <p style="margin-top:32px;font-size:12px;color:#444">Questions? Reply to this email.</p>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="background:#f8f8f8;color:#1a1a1a;font-family:Helvetica Neue,Arial,sans-serif;padding:20px 16px;margin:0">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px 24px">
+    <p style="font-size:12px;letter-spacing:0.15em;color:#999;text-transform:uppercase;margin:0 0 16px">June 6 · Fort Tilden</p>
+    <h1 style="font-size:2rem;font-weight:700;letter-spacing:-0.03em;color:#d3f707;margin:0 0 12px">You're on the bus.</h1>
+    <p style="color:#666;font-size:15px;margin:0 0 24px;line-height:1.5">Hi ${name} — here's your booking summary.</p>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+      ${rows.map(([k, v]) => `<tr style="border-bottom:1px solid #e0e0e0">
+        <td style="padding:14px 0;color:#999;font-family:monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500">${k}</td>
+        <td style="padding:14px 0;color:#1a1a1a;text-align:right;font-weight:500">${v}</td>
+      </tr>`).join("")}
+    </table>
+    <p style="margin:0;font-size:13px;color:#999;line-height:1.6">Questions? Reply to this email or contact us.</p>
+  </div>
 </body></html>`;
 }

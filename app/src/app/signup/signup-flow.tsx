@@ -267,15 +267,12 @@ function KioskCard({
   if (cardId === "return-yn") return (
     <div>
       <p style={bigLabel}>Need a ride back?</p>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "18px", color: "#d3f707", letterSpacing: "-0.01em", marginBottom: "20px" }}>
-        Round-trip ${PRICES.roundTrip} × {form.seats} seat{form.seats > 1 ? "s" : ""} = ${PRICES.roundTrip * form.seats} · One-way ${PRICES.oneWay} × {form.seats} = ${PRICES.oneWay * form.seats}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {[true, false].map((v) => (
-          <button key={String(v)} onClick={() => { set("wantsReturn", v); setTimeout(onAdvance, 180); }} style={{ padding: "22px 24px", background: form.wantsReturn === v ? (v ? "rgba(211,247,7,0.08)" : "rgba(255,255,255,0.04)") : "#0a0909", border: `1px solid ${form.wantsReturn === v ? (v ? "#d3f707" : "#333") : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", textAlign: "left", transition: "all 150ms" }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 500, color: v ? (form.wantsReturn === v ? "#d3f707" : "#888") : (form.wantsReturn === false ? "#f0f0f0" : "#555"), letterSpacing: "-0.02em" }}>
+          <button key={String(v)} onClick={() => { set("wantsReturn", v); setTimeout(onAdvance, 180); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: form.wantsReturn === v ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${form.wantsReturn === v ? "#d3f707" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: form.wantsReturn === v ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>
               {v ? `Yes — $${PRICES.roundTrip} round-trip` : `No — $${PRICES.oneWay} one-way`}
-            </div>
+            </span>
           </button>
         ))}
       </div>
@@ -287,8 +284,8 @@ function KioskCard({
       <p style={bigLabel}>What time are you leaving?</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {INBOUND_TIMES.map((t) => (
-          <button key={t.id} onClick={() => { set("inboundTime", t.id); setTimeout(onAdvance, 180); }} style={{ display: "flex", alignItems: "center", padding: "18px 24px", background: form.inboundTime === t.id ? "rgba(14,165,233,0.08)" : "#0a0909", border: `1px solid ${form.inboundTime === t.id ? "#0ea5e9" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: form.inboundTime === t.id ? "#0ea5e9" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
+          <button key={t.id} onClick={() => { set("inboundTime", t.id); setTimeout(onAdvance, 180); }} style={{ display: "flex", alignItems: "center", padding: "18px 24px", background: form.inboundTime === t.id ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${form.inboundTime === t.id ? "#d3f707" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: form.inboundTime === t.id ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
           </button>
         ))}
       </div>
@@ -298,8 +295,8 @@ function KioskCard({
   if (cardId === "donate") return (
     <div>
       <p style={bigLabel}>Add a donation?</p>
-      <div style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "#555", lineHeight: 1.5, marginBottom: "32px" }}>
-        Subsidises a seat for someone who can&apos;t cover the full fare. Suggested: $15.
+      <div style={{ fontFamily: "var(--font-display)", fontSize: "18px", color: "#d3f707", letterSpacing: "-0.01em", marginBottom: "20px" }}>
+        All donations pay our artists directly. Suggested: $15.
       </div>
       <div style={{ display: "flex", gap: "6px", marginBottom: "24px", flexWrap: "wrap" }}>
         {[0, 10, 15, 25].map((p) => (

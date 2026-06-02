@@ -2,7 +2,7 @@
   "name": "ditp-june6",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3005",
+    "dev": "NODE_NO_WARNINGS=1 next dev --port 3005",
     "build": "next build",
     "start": "next start --port 3005"
   },

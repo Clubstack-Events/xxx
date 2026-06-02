@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
           currency: "usd",
           unit_amount: form.donation * 100,
           product_data: {
-            name: "Donation — Subsidised Seat Fund",
-            description: "Helps cover transportation for guests who can't pay the full fare.",
+            name: "Donation — Artist Fund",
+            description: "All donations pay our artists directly.",
           },
         },
         quantity: 1,
