@@ -3,8 +3,8 @@ import "./globals.css";
 import { neueMontreal, inter, khInterference } from "./fonts";
 
 export const metadata: Metadata = {
-  title: "DITP — June 6 Fort Tilden",
-  description: "Book your transportation to the June 6 event at Fort Tilden.",
+  title: "XXX",
+  description: "Inquire Within.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
