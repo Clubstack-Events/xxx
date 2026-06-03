@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { incrementFromWebhook } from "@/lib/capacity";
+import * as discord from "@/lib/discord";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { typescript: true });
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const webhookSecret = (process.env.STRIPE_WEBHOOK_SECRET ?? "").trim();
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
 
   if (!sig) {
+    discord.log("Webhook rejected", "warning", { Reason: "Missing signature" });
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
@@ -18,12 +20,17 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Webhook verification failed";
+    discord.log("Webhook signature failed", "error", { Error: msg });
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const meta = session.metadata ?? {};
+
+    if (meta.site !== "ditp-june6") {
+      return NextResponse.json({ received: true });
+    }
 
     const outboundTime = meta.outboundTime;
     const wantsReturn = meta.wantsReturn === "true";
@@ -32,6 +39,12 @@ export async function POST(req: NextRequest) {
 
     if (outboundTime && seats > 0) {
       await incrementFromWebhook(outboundTime, inboundTime, seats);
+      discord.log("Seats booked", "success", {
+        Name: meta.name ?? "—",
+        Seats: String(seats),
+        Outbound: outboundTime,
+        Return: inboundTime ?? "One-way",
+      });
     }
   }
 

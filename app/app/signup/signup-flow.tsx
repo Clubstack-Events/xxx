@@ -280,7 +280,7 @@ function KioskCard({
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: selected ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
               {full
                 ? <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#555" }}>full</span>
-                : remaining <= 4 && <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444" }}>{remaining} left</span>
+                : remaining <= 10 && <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444" }}>{remaining} left</span>
               }
             </button>
           );
@@ -323,7 +323,7 @@ function KioskCard({
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: selected ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
               {full
                 ? <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#555" }}>full</span>
-                : remaining <= 4 && <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444" }}>{remaining} left</span>
+                : remaining <= 10 && <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#444" }}>{remaining} left</span>
               }
             </button>
           );

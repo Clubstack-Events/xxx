@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import type { SignupState } from "@/lib/data";
 import { PRICES, OUTBOUND_TIMES, INBOUND_TIMES, FIXED_PICKUP } from "@/lib/data";
 import { checkCapacity } from "@/lib/capacity";
+import * as discord from "@/lib/discord";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { typescript: true });
 
@@ -90,6 +91,7 @@ export async function POST(req: NextRequest) {
       success_url: `${base}/signup/confirm?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/signup`,
       metadata: {
+        site: "ditp-june6",
         name: form.name,
         contact: form.contact,
         contactType: form.contactType,
@@ -101,9 +103,16 @@ export async function POST(req: NextRequest) {
       customer_email: form.contactType === "email" ? form.contact : undefined,
     });
 
+    discord.log("Checkout started", "info", {
+      Name: form.name,
+      Seats: String(form.seats),
+      Trip: form.wantsReturn ? "Round-trip" : "One-way",
+    });
+
     return NextResponse.json({ url: session.url });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
+    discord.log("Checkout creation failed", "error", { Error: msg });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

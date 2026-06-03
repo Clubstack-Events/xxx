@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { Resend } from "resend";
 import twilio from "twilio";
 import { OUTBOUND_TIMES, INBOUND_TIMES, FIXED_PICKUP } from "@/lib/data";
+import * as discord from "@/lib/discord";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { typescript: true });
 const resend = new Resend(process.env.RESEND_API_KEY!);
@@ -57,8 +58,20 @@ export default async function ConfirmPage({
       }
 
       await stripe.checkout.sessions.update(session_id, { metadata: { ...meta, receiptSent: "true" } });
+      discord.log("Confirmation sent", "success", {
+        Name: meta.name ?? "—",
+        Contact: meta.contact ?? "—",
+        Method: meta.contactType === "phone" ? "SMS" : "Email",
+        Seats: meta.seats ?? "1",
+      });
     } catch (err) {
       console.error("[confirm] receipt send failed:", err);
+      discord.log("Confirmation FAILED", "error", {
+        Name: meta.name ?? "—",
+        Contact: meta.contact ?? "—",
+        Method: meta.contactType === "phone" ? "SMS" : "Email",
+        Error: err instanceof Error ? err.message : "Unknown error",
+      });
     }
   }
   const seats = Number(meta.seats ?? 1);
@@ -85,7 +98,7 @@ export default async function ConfirmPage({
         </div>
 
         <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 10vw, 3.5rem)", fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 1, color: "#1a1a1a", marginBottom: "16px" }}>
-          Confirmed.
+          Screenshot this confirmation.
         </div>
 
         {seats > 1 && (
@@ -122,12 +135,12 @@ function smsText({ name, seats, outboundLabel, wantsReturn, inboundLabel, total 
     ? `Round-trip: departs ${outboundLabel}, returns ${inboundLabel ?? "—"}`
     : `One-way: departs ${outboundLabel}`;
   return [
-    `Hi ${name} — 🚌 info below`,
-    `June 6 · Fort Tilden`,
-    `Pickup: ${FIXED_PICKUP.label}`,
+    `Hi ${name}`,
+    `June 6 · Fort Tilden 🚌 `,
+    `Pickup & Drop: ${FIXED_PICKUP.label}`,
     `${seats} seat${seats > 1 ? "s" : ""} · ${tripLine}`,
     `Total paid: $${total}`,
-    `See you there.`,
+    `Save this confirmation.`,
   ].join("\n");
 }
 
@@ -144,7 +157,7 @@ function receiptHtml({ name, seats, outboundLabel, wantsReturn, inboundLabel, to
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="background:#f8f8f8;color:#1a1a1a;font-family:Helvetica Neue,Arial,sans-serif;padding:20px 16px;margin:0">
   <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px 24px">
     <p style="font-size:12px;letter-spacing:0.15em;color:#999;text-transform:uppercase;margin:0 0 16px">June 6 · Fort Tilden</p>
-    <h1 style="font-size:2rem;font-weight:700;letter-spacing:-0.03em;color:#1a1a1a;margin:0 0 12px">Confirmed.</h1>
+    <h1 style="font-size:2rem;font-weight:700;letter-spacing:-0.03em;color:#1a1a1a;margin:0 0 12px">Save this email.</h1>
     <p style="color:#666;font-size:15px;margin:0 0 24px;line-height:1.5">Hi ${name} — here's your booking summary.</p>
     <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
       ${rows.map(([k, v]) => `<tr style="border-bottom:1px solid #e0e0e0">
