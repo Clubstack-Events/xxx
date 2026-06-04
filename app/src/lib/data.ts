@@ -1,6 +1,6 @@
 export const FIXED_PICKUP = {
-  label: "1132 E New York Ave, Brooklyn, NY 11212",
-  sublabel: "Crown Heights — street-level",
+  label: "1491 Gates Ave, Brooklyn, NY",
+  sublabel: "Outside Tyler's apartment — street-level",
 };
 
 // TODO: Replace with confirmed outbound departure times + real seat counts
