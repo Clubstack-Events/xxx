@@ -10,6 +10,7 @@ import {
   PRICES,
   calcTotal,
   type SignupState,
+  type TripType,
 } from "@/lib/data";
 import type { Availability } from "@/lib/capacity";
 
@@ -19,7 +20,8 @@ const CARD_ORDER: CardId[] = ["name", "contact", "seats", "outbound", "return-yn
 
 function getCardOrder(form: SignupState): CardId[] {
   return CARD_ORDER.filter((id) => {
-    if (id === "return-time") return form.wantsReturn;
+    if (id === "return-yn") return form.tripType !== "inbound-only";
+    if (id === "return-time") return form.tripType === "round-trip" || form.tripType === "inbound-only";
     return true;
   });
 }
@@ -269,12 +271,12 @@ function KioskCard({
           const slot = availability?.outbound[t.id];
           const full = slot?.full ?? false;
           const remaining = slot?.remaining ?? t.spots;
-          const selected = form.outboundTime === t.id;
+          const selected = form.outboundTime === t.id && form.tripType !== "inbound-only";
           return (
             <button
               key={t.id}
               disabled={full}
-              onClick={() => { if (!full) { set("outboundTime", t.id); setTimeout(onAdvance, 180); } }}
+              onClick={() => { if (!full) { set("outboundTime", t.id); set("tripType", "outbound"); setTimeout(onAdvance, 180); } }}
               style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: selected ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${selected ? "#d3f707" : "#1a1a1a"}`, cursor: full ? "not-allowed" : "pointer", borderRadius: "4px", transition: "all 150ms", opacity: full ? 0.4 : 1 }}
             >
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: selected ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>{t.label}</span>
@@ -285,6 +287,12 @@ function KioskCard({
             </button>
           );
         })}
+        <button
+          onClick={() => { set("tripType", "inbound-only" as TripType); setTimeout(onAdvance, 180); }}
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: form.tripType === "inbound-only" ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${form.tripType === "inbound-only" ? "#d3f707" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms", marginTop: "6px" }}
+        >
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "15px", color: form.tripType === "inbound-only" ? "#d3f707" : "#555", letterSpacing: "0.02em" }}>Skip — return home only · ${PRICES.oneWay}</span>
+        </button>
       </div>
     </div>
   );
@@ -293,10 +301,10 @@ function KioskCard({
     <div>
       <p style={bigLabel}>Need a ride back?</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {[true, false].map((v) => (
-          <button key={String(v)} onClick={() => { set("wantsReturn", v); setTimeout(onAdvance, 180); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: form.wantsReturn === v ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${form.wantsReturn === v ? "#d3f707" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: form.wantsReturn === v ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>
-              {v ? `Yes — $${PRICES.roundTrip} round-trip` : `No — $${PRICES.oneWay} one-way`}
+        {(["round-trip", "outbound"] as TripType[]).map((t) => (
+          <button key={t} onClick={() => { set("tripType", t); setTimeout(onAdvance, 180); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 24px", background: form.tripType === t ? "rgba(211,247,7,0.08)" : "#0a0909", border: `1px solid ${form.tripType === t ? "#d3f707" : "#1a1a1a"}`, cursor: "pointer", borderRadius: "4px", transition: "all 150ms" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "18px", color: form.tripType === t ? "#d3f707" : "#888", letterSpacing: "0.02em" }}>
+              {t === "round-trip" ? `Yes — $${PRICES.roundTrip} round-trip` : `No — $${PRICES.oneWay} one-way`}
             </span>
           </button>
         ))}
@@ -352,7 +360,9 @@ function KioskCard({
   if (cardId === "review") {
     const outbound = OUTBOUND_TIMES.find((t) => t.id === form.outboundTime);
     const inbound = INBOUND_TIMES.find((t) => t.id === form.inboundTime);
-    const tripCost = (form.wantsReturn ? PRICES.roundTrip : PRICES.oneWay) * form.seats;
+    const tripCost = (form.tripType === "round-trip" ? PRICES.roundTrip : PRICES.oneWay) * form.seats;
+    const returnsLabel = form.tripType === "outbound" ? "One-way" : (inbound?.label ?? "—");
+    const departsLabel = form.tripType === "inbound-only" ? "—" : (outbound?.label ?? "—");
     return (
       <div>
         <p style={{ ...bigLabel, fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}>Here&apos;s your ticket.</p>
@@ -362,9 +372,9 @@ function KioskCard({
             [form.contactType === "phone" ? "Phone" : "Email", form.contact],
             ["Pickup", FIXED_PICKUP.label],
             ["Seats", form.seats === 1 ? "1 seat (just you)" : `${form.seats} seats`],
-            ["Departs", outbound?.label ?? "—"],
-            ["Returns", form.wantsReturn ? inbound?.label : "One-way"],
-            ["Trip cost", `$${tripCost} (${form.seats} × $${form.wantsReturn ? PRICES.roundTrip : PRICES.oneWay})`],
+            ["Departs", departsLabel],
+            ["Returns", returnsLabel],
+            ["Trip cost", `$${tripCost} (${form.seats} × $${form.tripType === "round-trip" ? PRICES.roundTrip : PRICES.oneWay})`],
             ["Donation", form.donation > 0 ? `$${form.donation}` : "None"],
           ].map(([k, v], i) => (
             <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "14px 20px", background: i % 2 === 0 ? "#0a0909" : "#080807", borderBottom: "1px solid #111" }}>

@@ -63,15 +63,17 @@ export async function getAvailability(): Promise<Availability> {
 // A small race window exists when two sessions pass this check simultaneously,
 // accepted as low-risk for a 60-seat event.
 export async function checkCapacity(
-  outboundTime: string,
+  outboundTime: string | null,
   inboundTime: string | null,
   seats: number,
 ): Promise<{ ok: boolean; reason?: string }> {
   const av = await getAvailability();
 
-  const ob = av.outbound[outboundTime];
-  if (!ob) return { ok: false, reason: "Invalid outbound slot" };
-  if (ob.remaining < seats) return { ok: false, reason: `Only ${ob.remaining} seat${ob.remaining === 1 ? "" : "s"} left on that departure` };
+  if (outboundTime) {
+    const ob = av.outbound[outboundTime];
+    if (!ob) return { ok: false, reason: "Invalid outbound slot" };
+    if (ob.remaining < seats) return { ok: false, reason: `Only ${ob.remaining} seat${ob.remaining === 1 ? "" : "s"} left on that departure` };
+  }
 
   if (inboundTime) {
     const ib = av.inbound[inboundTime];
@@ -83,11 +85,13 @@ export async function checkCapacity(
 }
 
 export async function incrementFromWebhook(
-  outboundTime: string,
+  outboundTime: string | null,
   inboundTime: string | null,
   seats: number,
 ): Promise<void> {
-  await kv.incrby(bookedKey(`outbound:${outboundTime}`), seats);
+  if (outboundTime) {
+    await kv.incrby(bookedKey(`outbound:${outboundTime}`), seats);
+  }
   if (inboundTime) {
     await kv.incrby(bookedKey(`inbound:${inboundTime}`), seats);
   }

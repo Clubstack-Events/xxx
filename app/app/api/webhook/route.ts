@@ -32,18 +32,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    const outboundTime = meta.outboundTime;
-    const wantsReturn = meta.wantsReturn === "true";
-    const inboundTime = wantsReturn && meta.inboundTime ? meta.inboundTime : null;
+    // backward-compat: old sessions stored wantsReturn, new sessions store tripType
+    const tripType = meta.tripType ?? (meta.wantsReturn === "true" ? "round-trip" : "outbound");
+    const outboundTime = tripType !== "inbound-only" && meta.outboundTime ? meta.outboundTime : null;
+    const inboundTime = tripType !== "outbound" && meta.inboundTime ? meta.inboundTime : null;
     const seats = parseInt(meta.seats ?? "1", 10);
 
-    if (outboundTime && seats > 0) {
+    if (seats > 0 && (outboundTime || inboundTime)) {
       await incrementFromWebhook(outboundTime, inboundTime, seats);
       discord.log("Seats booked", "success", {
         Name: meta.name ?? "—",
         Seats: String(seats),
-        Outbound: outboundTime,
-        Return: inboundTime ?? "One-way",
+        Trip: tripType,
+        Outbound: outboundTime ?? "—",
+        Return: inboundTime ?? "—",
       });
     }
   }

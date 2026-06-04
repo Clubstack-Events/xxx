@@ -20,13 +20,15 @@ export const PRICES = {
   roundTrip: 30,
 } as const;
 
+export type TripType = "outbound" | "round-trip" | "inbound-only";
+
 export type SignupState = {
   name: string;
   contact: string;
   contactType: "phone" | "email";
   seats: number;
   outboundTime: string;
-  wantsReturn: boolean;
+  tripType: TripType;
   inboundTime: string;
   donation: number;
 };
@@ -37,12 +39,12 @@ export const DEFAULT_STATE: SignupState = {
   contactType: "phone",
   seats: 1,
   outboundTime: "",
-  wantsReturn: false,
+  tripType: "outbound",
   inboundTime: "",
   donation: 15,
 };
 
 export function calcTotal(state: SignupState): number {
-  const tripCost = state.wantsReturn ? PRICES.roundTrip : PRICES.oneWay;
+  const tripCost = state.tripType === "round-trip" ? PRICES.roundTrip : PRICES.oneWay;
   return tripCost * state.seats + state.donation;
 }

@@ -34,6 +34,7 @@ export default async function ConfirmPage({
   // Send receipt once — idempotent via metadata flag
   if (!alreadySent && meta.contact) {
     try {
+      const tripType = meta.tripType ?? (meta.wantsReturn === "true" ? "round-trip" : "outbound");
       const outboundLabel = OUTBOUND_TIMES.find((t) => t.id === meta.outboundTime)?.label ?? "—";
       const inboundLabel = INBOUND_TIMES.find((t) => t.id === meta.inboundTime)?.label;
       const seats = Number(meta.seats ?? 1);
@@ -44,10 +45,10 @@ export default async function ConfirmPage({
           from: "Fort Tilden Transportation <admin@clubstack.studio>",
           to: meta.contact,
           subject: "June 6 Fort Tilden",
-          html: receiptHtml({ name: meta.name ?? "", seats, outboundLabel, wantsReturn: meta.wantsReturn === "true", inboundLabel, total }),
+          html: receiptHtml({ name: meta.name ?? "", seats, outboundLabel, tripType, inboundLabel, total }),
         });
       } else if (meta.contactType === "phone") {
-        const smsBody = smsText({ name: meta.name ?? "", seats, outboundLabel, wantsReturn: meta.wantsReturn === "true", inboundLabel, total });
+        const smsBody = smsText({ name: meta.name ?? "", seats, outboundLabel, tripType, inboundLabel, total });
         const digits = meta.contact.replace(/\D/g, "");
         const e164 = digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
         await twilioClient.messages.create({
@@ -75,7 +76,7 @@ export default async function ConfirmPage({
     }
   }
   const seats = Number(meta.seats ?? 1);
-  const wantsReturn = meta.wantsReturn === "true";
+  const tripType = meta.tripType ?? (meta.wantsReturn === "true" ? "round-trip" : "outbound");
   const outbound = OUTBOUND_TIMES.find((t) => t.id === meta.outboundTime);
   const inbound = INBOUND_TIMES.find((t) => t.id === meta.inboundTime);
   const total = (session.amount_total ?? 0) / 100;
@@ -85,8 +86,8 @@ export default async function ConfirmPage({
     [meta.contactType === "phone" ? "Phone" : "Email", meta.contact ?? "—"],
     ["Pickup", FIXED_PICKUP.label],
     ["Seats", seats === 1 ? "1 seat" : `${seats} seats`],
-    ["Departs", outbound?.label ?? "—"],
-    ["Returns", wantsReturn ? (inbound?.label ?? "—") : "One-way"],
+    ["Departs", tripType === "inbound-only" ? "—" : (outbound?.label ?? "—")],
+    ["Returns", tripType === "outbound" ? "One-way" : (inbound?.label ?? "—")],
     ["Paid", `$${total}`],
   ];
 
@@ -128,11 +129,13 @@ export default async function ConfirmPage({
   );
 }
 
-function smsText({ name, seats, outboundLabel, wantsReturn, inboundLabel, total }: {
-  name: string; seats: number; outboundLabel: string; wantsReturn: boolean; inboundLabel?: string; total: number;
+function smsText({ name, seats, outboundLabel, tripType, inboundLabel, total }: {
+  name: string; seats: number; outboundLabel: string; tripType: string; inboundLabel?: string; total: number;
 }): string {
-  const tripLine = wantsReturn
+  const tripLine = tripType === "round-trip"
     ? `Round-trip: departs ${outboundLabel}, returns ${inboundLabel ?? "—"}`
+    : tripType === "inbound-only"
+    ? `Return-only: departs Fort Tilden ${inboundLabel ?? "—"}`
     : `One-way: departs ${outboundLabel}`;
   return [
     `Hi ${name}`,
@@ -144,14 +147,14 @@ function smsText({ name, seats, outboundLabel, wantsReturn, inboundLabel, total 
   ].join("\n");
 }
 
-function receiptHtml({ name, seats, outboundLabel, wantsReturn, inboundLabel, total }: {
-  name: string; seats: number; outboundLabel: string; wantsReturn: boolean; inboundLabel?: string; total: number;
+function receiptHtml({ name, seats, outboundLabel, tripType, inboundLabel, total }: {
+  name: string; seats: number; outboundLabel: string; tripType: string; inboundLabel?: string; total: number;
 }) {
   const rows = [
     ["Pickup", FIXED_PICKUP.label],
     ["Seats", seats === 1 ? "1 seat" : `${seats} seats`],
-    ["Departs", outboundLabel],
-    ["Returns", wantsReturn ? (inboundLabel ?? "—") : "One-way"],
+    ["Departs", tripType === "inbound-only" ? "—" : outboundLabel],
+    ["Returns", tripType === "outbound" ? "One-way" : (inboundLabel ?? "—")],
     ["Total paid", `$${total}`],
   ];
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="background:#f8f8f8;color:#1a1a1a;font-family:Helvetica Neue,Arial,sans-serif;padding:20px 16px;margin:0">

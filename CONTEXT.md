@@ -24,8 +24,9 @@ A person signing up for transportation to/from the June 6 Fort Tilden event. One
 A directed journey between a pickup location and Fort Tilden. Either **outbound** (to event) or **inbound** (from event). Each trip has a fixed departure time and price.
 
 **Trip Types:**
-- **Outbound trip**: departure from pickup location → Fort Tilden. Price: $20 per one-way OR $30 for round-trip (outbound + inbound pair)
-- **Inbound trip**: departure from Fort Tilden → return to pickup location. Selected only if guest also selected an outbound trip.
+- **Outbound trip**: departure from pickup location → Fort Tilden. Price: $20 one-way OR $30 round-trip (outbound + inbound pair).
+- **Inbound trip**: departure from Fort Tilden → return to pickup location. Bookable standalone (return-only) or as the return leg of a round-trip.
+- **Return-only**: an inbound trip booked without a corresponding outbound trip. Price: $20 (same as outbound one-way).
 
 ### Signup
 A guest's complete form submission. Contains:
@@ -37,9 +38,10 @@ A guest's complete form submission. Contains:
 ## Constraints & Rules
 
 **Trip Selection:**
-- Guest must select exactly one outbound trip
-- Guest may optionally select one inbound trip (if selected, timing must be sensible: inbound departure time ≥ some minimum duration after event start)
-- Maximum 2 trips per signup (outbound + inbound)
+- Guest selects exactly one trip configuration: outbound-only, round-trip, or return-only
+- Round-trip requires both an outbound time and an inbound time
+- Return-only requires only an inbound time (no outbound slot consumed)
+- Maximum 2 slots per signup (one outbound + one inbound)
 
 **Payment:**
 - Trip payment is mandatory and immediate (at form submission → Stripe checkout → confirmation)
