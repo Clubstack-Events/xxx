@@ -1,0 +1,27 @@
+{
+  "name": "ditp-june6",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Clubstack-Events/xxx.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Clubstack-Events/xxx/issues"
+  },
+  "homepage": "https://github.com/Clubstack-Events/xxx#readme",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

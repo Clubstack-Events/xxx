@@ -13,6 +13,8 @@ out/
 dist/
 build/
 
+scripts/
+
 # misc
 .DS_Store
 *.pem
